@@ -1,24 +1,53 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BlueMangoScoreKeeper</title><style>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BlueMangoScoreKeeper</title>
+<style>
 *{box-sizing:border-box}
-body{margin:0;background:#111;color:#ddd;font:14px/1.45 monospace}
-.terminal{width:min(100%,850px);margin:20px auto;padding:0 12px}
-.bar{background:#303030;color:#ddd;padding:6px 10px;border:1px solid #484848;display:flex;justify-content:space-between}
+html,body{width:100%;max-width:100%;margin:0}
+body{background:#111;color:#ddd;font:14px/1.45 monospace}
+.terminal{width:100%;max-width:850px;margin:20px auto;padding:0 12px;min-width:0}
+.bar{background:#303030;color:#ddd;padding:6px 10px;border:1px solid #484848;display:flex;justify-content:space-between;min-width:0}
 .lights{color:#d7a85b}
-.screen{border:1px solid #484848;border-top:0;padding:12px;min-height:350px;background:#101010;overflow:hidden;min-width:0}
+.screen{border:1px solid #484848;border-top:0;padding:12px;min-height:350px;background:#101010;width:100%;min-width:0;overflow:hidden}
+#out{width:100%;min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
 .out{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;max-width:100%}
 .blue{color:#559bff}
 .yellow{color:#e5d55a}
 .green{color:#54d878}
 .red{color:#ff6262}
 .purple{color:#d68aff}
-.inputrow{display:flex;align-items:baseline;gap:0;margin-top:7px;width:100%;min-width:0;max-width:100%;overflow:hidden}
-.prompt{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;flex:0 1 auto;min-width:0;max-width:100%}
-.inputrow input{flex:1 1 0;width:0;min-width:0;max-width:100%;background:transparent;border:0;outline:0;color:#ddd;font:inherit;caret-color:#ddd;padding:0;appearance:none;-webkit-appearance:none;border-radius:0}
-.cursor{flex:0 0 auto;animation:blink 1s steps(2,start) infinite;pointer-events:none}
+.inputrow{display:flex;flex-flow:row nowrap;align-items:baseline;gap:0;margin-top:7px;width:100%;max-width:100%;min-width:0;overflow:hidden}
+.prompt{flex:0 1 auto;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.inputwrap{display:flex;flex:1 1 0;min-width:0;max-width:100%;align-items:baseline;overflow:hidden}
+.inputrow input{display:block;flex:1 1 0;width:100%;min-width:0;max-width:100%;padding:0;margin:0;background:transparent;border:0;outline:0;color:#ddd;font:inherit;line-height:inherit;caret-color:#ddd;appearance:none;-webkit-appearance:none;border-radius:0}
+.cursor{flex:none;width:1ch;overflow:hidden;animation:blink 1s steps(2,start) infinite;pointer-events:none}
 @keyframes blink{to{visibility:hidden}}
-.hint{color:#777;font-size:12px;margin-top:10px}
+.hint{color:#777;font-size:12px;margin-top:10px;overflow-wrap:anywhere}
 @media(max-width:500px){.terminal{margin:0}.screen{min-height:100vh}.bar{border-left:0;border-right:0}}
-</style></head><body><main class="terminal"><header class="bar"><span>BlueMangoScoreKeeper.py</span><span class="lights">● ● ●</span></header><section class="screen" id="screen"><div id="out"></div><form class="inputrow" id="form"><span class="prompt" id="prompt"></span><input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus><span class="cursor">▌</span></form><div class="hint">BlueMangoScoreKeeper // coded by Wai, translated to JavaScript by Andrei</div></section></main><script>
+</style>
+</head>
+<body>
+<main class="terminal">
+<header class="bar">
+<span>BlueMangoScoreKeeper.py</span>
+<span class="lights">● ● ●</span>
+</header>
+<section class="screen" id="screen">
+<div id="out"></div>
+<form class="inputrow" id="form">
+<span class="prompt" id="prompt"></span>
+<span class="inputwrap">
+<input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
+<span class="cursor">▌</span>
+</span>
+</form>
+<div class="hint">BlueMangoScoreKeeper // made by Wai, translated for the browser by Andrei</div>
+</section>
+</main>
+<script>
 const $=id=>document.getElementById(id),out=$("out"),cmd=$("cmd"),form=$("form"),prompt=$("prompt");
 const C={b:"blue",y:"yellow",g:"green",r:"red",p:"purple"};
 let state="target",target=11,h=0,a=0,home_player="",away_player="",game_type="",names={},serve="",player="",ord="",finished=false;
@@ -71,4 +100,6 @@ if(state==="a2"){names.a2=v;begin();return}
 if(state==="point")score(v.toLowerCase())
 });
 init();
-</script></body></html>
+</script>
+</body>
+</html>
