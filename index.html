@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="UTF-8">
@@ -114,7 +113,7 @@ body{background:#111;color:#ddd;font:14px/1.45 monospace}
     <span class="mirror" id="mirror"></span>
   </span>
 </form>
-<div class="hint">BlueMangoScoreKeeper // coded by Wai, translated to JavaScript by Andrei</div>
+<div class="hint">BlueMangoScoreKeeper // coded by Wai, translated for the browser by Andrei</div>
 </section>
 </main>
 <script>
@@ -136,7 +135,7 @@ const C={b:"blue",y:"yellow",g:"green",r:"red",p:"purple"};
 let state="target",target=11,h=0,a=0,home_player="",away_player="",game_type="",names={},serve="",player="",ord="",finished=false;
 
 function resizeInput(){
-syncInput();
+  syncInput();
 }
 
 function print(s="",c=""){
@@ -187,15 +186,15 @@ else if(inddig===.500){player=names.h2;serve="1";ord="st"}
 else if(inddig===.625){player=names.h2;serve="2";ord="nd"}
 else if(inddig===.750){player=names.a2;serve="1";ord="st"}
 else if(inddig===.875){player=names.a2;serve="2";ord="nd"}
-print(player+""s "+serve+ord+" serve");
-ask("P ("+"<span class="blue">h</span>/<span class="yellow">a</span>"+"): ");
+print(player+"'s "+serve+ord+" serve");
+ask("P ("+'<span class="blue">h</span>/<span class="yellow">a</span>'+"): ");
 }
 
 function score(p){
 if(p==="h")h++;
 else if(p==="a")a++;
 else{
-print("Invalid input - enter "h" or "a"","r");
+print("Invalid input - enter 'h' or 'a'","r");
 return next();
 }
 print(home_player+": "+h,"b");
@@ -313,6 +312,5 @@ if(state==="point")score(v.toLowerCase());
 window.addEventListener("resize",resizeInput);
 init();
 </script>
-
 </body>
 </html>
