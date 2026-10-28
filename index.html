@@ -1,396 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BlueMangoScoreKeeper</title>
 <style>
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    padding: 20px;
-    background: #0b1020;
-    color: #e5e7eb;
-    font-family: system-ui, sans-serif;
+*{box-sizing:border-box}
+body{margin:0;background:#111;color:#ddd;font:14px/1.45 monospace}
+.terminal{width:min(100%,850px);margin:20px auto;padding:0 12px}
+.bar{background:#303030;color:#ddd;padding:6px 10px;border:1px solid #484848;display:flex;justify-content:space-between}
+.lights{color:#d7a85b}
+.screen{border:1px solid #484848;border-top:0;padding:12px;min-height:350px;background:#101010;overflow-wrap:anywhere}
+.out{white-space:pre-wrap;margin:0}
+.blue{color:#559bff}
+.yellow{color:#e5d55a}
+.green{color:#54d878}
+.red{color:#ff6262}
+.purple{color:#d68aff}
+.inputrow{display:flex;align-items:center;gap:7px;margin-top:7px}
+.prompt{white-space:pre}
+.inputrow input{
+flex:1;
+min-width:0;
+width:100%;
+background:transparent;
+border:0;
+outline:0;
+color:#ddd;
+font:inherit;
+caret-color:#ddd;
+padding:4px 0;
+-webkit-appearance:none;
+appearance:none;
+border-radius:0;
+opacity:1;
+pointer-events:auto;
+user-select:text;
+-webkit-user-select:text;
 }
-
-main {
-    max-width: 900px;
-    margin: auto;
-}
-
-h1 { margin-bottom: 4px; }
-
-.subtitle {
-    color: #9ca3af;
-    margin-top: 0;
-    margin-bottom: 20px;
-}
-
-.terminal {
-    border: 1px solid #334155;
-    border-radius: 9px;
-    overflow: hidden;
-    background: #05070d;
-}
-
-.terminal-header {
-    padding: 12px 16px;
-    background: #111827;
-    color: #cbd5e1;
-    font-size: 13px;
-}
-
-#output {
-    height: min(65vh, 600px);
-    min-height: 320px;
-    padding: 16px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    font: 15px/1.55 monospace;
-}
-
-.line {
-    min-height: 1.55em;
-}
-
-.blue { color: #60a5fa; }
-.yellow { color: #facc15; }
-.green { color: #4ade80; }
-.red { color: #f87171; }
-.purple { color: #c084fc; }
-
-.input-line {
-    display: flex;
-    align-items: baseline;
-    font: 15px/1.55 monospace;
-    padding: 0 16px 16px;
-    gap: 6px;
-}
-
-#prompt {
-    white-space: pre-wrap;
-}
-
-#entry {
-    min-width: 0;
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #e5e7eb;
-    font: inherit;
-    caret-color: white;
-}
-
-.controls {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-}
-
-button {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 7px;
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-button:disabled {
-    opacity: .5;
-    cursor: default;
-}
-
-.status {
-    padding: 10px 14px;
-    background: #111827;
-    color: #9ca3af;
-    font-size: 12px;
+.cursor{animation:blink 1s steps(2,start) infinite;pointer-events:none}
+@keyframes blink{to{visibility:hidden}}
+.hint{color:#777;font-size:12px;margin-top:10px}
+@media(max-width:500px){
+.terminal{margin:0}
+.screen{min-height:100vh}
+.bar{border-left:0;border-right:0}
 }
 </style>
 </head>
-
 <body>
-<main>
-    <h1>BlueMangoScoreKeeper</h1>
-    <p class="subtitle">made by the GOAT waiwai, translated <br> for browser by andrei, shoutout liam</p>
-
-    <div class="terminal">
-        <div class="terminal-header">scorer.py (totally)</div>
-        <div id="output"></div>
-        <div class="input-line">
-            <span id="prompt"></span>
-            <input id="entry" autocomplete="off" autocapitalize="off"
-                   spellcheck="false" aria-label="Terminal input">
-        </div>
-        <div class="status" id="status">Ready</div>
-    </div>
-
-    <div class="controls">
-        <button id="restart">Restart match</button>
-    </div>
+<main class="terminal">
+<header class="bar">
+<span>BlueMangoScoreKeeper.py</span>
+<span class="lights">● ● ●</span>
+</header>
+<section class="screen" id="screen">
+<div id="out"></div>
+<div class="inputrow" id="form">
+<span class="prompt" id="prompt"></span>
+<input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+<span class="cursor">▌</span>
+</div>
+<div class="hint">BlueMangoScoreKeeper // standard input</div>
+</section>
 </main>
 
 <script>
-const BLUE = "\x1b[94m";
-const YELLOW = "\x1b[93m";
-const GREEN = "\x1b[92m";
-const RED = "\x1b[91m";
-const PURPLE = "\x1b[95m";
-const RESET = "\x1b[0m";
+const $=id=>document.getElementById(id),out=$("out"),cmd=$("cmd"),form=$("form"),prompt=$("prompt");
+const C={b:"blue",y:"yellow",g:"green",r:"red",p:"purple"};
+let state="target",target=11,h=0,a=0,home_player="",away_player="",game_type="",names={},serve="",player="",ord="",finished=false;
 
-const output = document.getElementById("output");
-const promptElement = document.getElementById("prompt");
-const entry = document.getElementById("entry");
-const status = document.getElementById("status");
-const restartButton = document.getElementById("restart");
-
-let inputResolver = null;
-let gameFinished = false;
-let matchStarted = false;
-
-function escapeHTML(text) {
-    return String(text).replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    })[char]);
+function print(s="",c=""){
+let d=document.createElement("div");
+d.className="out "+(C[c]||"");
+d.textContent=s;
+out.append(d);
 }
 
-function renderAnsi(text) {
-    const colors = {
-        "94": "blue",
-        "93": "yellow",
-        "92": "green",
-        "91": "red",
-        "95": "purple"
-    };
-
-    const parts = String(text).split(/(\x1b\[[0-9;]*m)/);
-    let currentColor = "";
-    let html = "";
-
-    for (const part of parts) {
-        const match = part.match(/^\x1b\[([0-9;]*)m$/);
-
-        if (match) {
-            currentColor = match[1] === "0" ? "" : (colors[match[1]] || "");
-        } else {
-            const safe = escapeHTML(part);
-            html += currentColor
-                ? `<span class="${currentColor}">${safe}</span>`
-                : safe;
-        }
-    }
-
-    return html;
+function ask(s){
+prompt.innerHTML=s;
+cmd.value="";
+cmd.disabled=false;
+cmd.readOnly=false;
+cmd.focus();
 }
 
-function print(text = "") {
-    const line = document.createElement("div");
-    line.className = "line";
-    line.innerHTML = renderAnsi(text);
-    output.appendChild(line);
-    output.scrollTop = output.scrollHeight;
+function init(){
+print("What score should the game go to?");
+ask("");
 }
 
-function input(prompt = "") {
-    return new Promise(resolve => {
-        promptElement.innerHTML = renderAnsi(prompt);
-        entry.value = "";
-        entry.disabled = false;
-        inputResolver = resolve;
-        requestAnimationFrame(() => entry.focus());
-        output.scrollTop = output.scrollHeight;
-    });
+function start(){
+print("Game to "+target,"p");
+ask("Home player/team: ");
 }
 
-entry.addEventListener("keydown", event => {
-    if (event.key !== "Enter" || !inputResolver) return;
+function players(){
+print("Are you playing Singles or Doubles? (s/d): ","b");
+ask("");
+state="type";
+}
 
-    event.preventDefault();
+function begin(){
+h=0;
+a=0;
+state="point";
+next();
+}
 
-    const answer = entry.value;
-    const promptText = promptElement.textContent;
+function next(){
+let score=h+a,inddig=score/8-Math.floor(score/8);
+if(inddig===0){player=names.h1;serve="1";ord="st"}
+else if(inddig===.125){player=names.h1;serve="2";ord="nd"}
+else if(inddig===.250){player=names.a1;serve="1";ord="st"}
+else if(inddig===.375){player=names.a2;serve="2";ord="nd"}
+else if(inddig===.500){player=names.h2;serve="1";ord="st"}
+else if(inddig===.625){player=names.h2;serve="2";ord="nd"}
+else if(inddig===.750){player=names.a2;serve="1";ord="st"}
+else if(inddig===.875){player=names.a2;serve="2";ord="nd"}
+print(player+"'s "+serve+ord+" serve");
+ask("P ("+'<span class="blue">h</span>/<span class="yellow">a</span>'+"): ");
+}
 
-    print(promptText + answer);
+function score(p){
+if(p==="h")h++;
+else if(p==="a")a++;
+else{
+print("Invalid input - enter 'h' or 'a'","r");
+return next();
+}
+print(home_player+": "+h,"b");
+print(away_player+": "+a,"y");
+if((h>=target||a>=target)&&Math.abs(h-a)>=2){
+let winner=h>a?home_player:away_player,word=game_type==="S"?"wins":"win";
+print(winner+" "+word,"g");
+finished=true;
+state="done";
+ask("Press Enter to restart: ");
+return;
+}
+next();
+}
 
-    const resolve = inputResolver;
-    inputResolver = null;
+cmd.addEventListener("keydown",e=>{
+if(e.key!=="Enter")return;
+e.preventDefault();
+if(cmd.disabled)return;
 
-    promptElement.textContent = "";
-    entry.value = "";
-    entry.disabled = true;
+let v=cmd.value.trim(),raw=v;
+print(prompt.textContent+raw);
+cmd.value="";
 
-    resolve(answer);
+if(state==="done"){
+out.innerHTML="";
+finished=false;
+state="target";
+h=0;
+a=0;
+target=11;
+init();
+return;
+}
+
+if(state==="target"){
+try{
+target=parseInt(v,10);
+if(Number.isNaN(target))throw 0;
+}catch{
+target=11;
+print("Invalid target score, using default 11","r");
+}
+if(!v||Number.isNaN(parseInt(v,10)))target=11;
+start();
+state="home";
+return;
+}
+
+if(state==="home"){
+home_player=v;
+state="away";
+ask("Away player/team: ");
+return;
+}
+
+if(state==="away"){
+away_player=v;
+state="type";
+ask("Are you playing Singles or Doubles? (s/d): ");
+return;
+}
+
+if(state==="type"){
+game_type=v.toLowerCase();
+if(game_type==="d"){
+state="h1";
+ask("Player 1 in "+home_player+": ");
+}else{
+names={h1:home_player,h2:home_player,a1:away_player,a2:away_player};
+begin();
+}
+return;
+}
+
+if(state==="h1"){
+names.h1=v;
+state="h2";
+ask("Player 2 in "+home_player+": ");
+return;
+}
+
+if(state==="h2"){
+names.h2=v;
+state="a1";
+ask("Player 1 in "+away_player+": ");
+return;
+}
+
+if(state==="a1"){
+names.a1=v;
+state="a2";
+ask("Player 2 in "+away_player+": ");
+return;
+}
+
+if(state==="a2"){
+names.a2=v;
+begin();
+return;
+}
+
+if(state==="point")score(v.toLowerCase());
 });
 
-function floor(value) {
-    return Math.floor(value);
-}
-
-async function t_tennis(e_score) {
-    print(`${PURPLE}Game to ${e_score}${RESET}`);
-
-    const home_player = await input(`${BLUE}Home player/team: ${RESET}`);
-    const away_player = await input(`${YELLOW}Away player/team: ${RESET}`);
-
-    const game_type = (await input(
-        `${BLUE}Are you playing Singles or Doubles? (s/d): ${RESET}`
-    )).trim().toLowerCase();
-
-    let h_team_player_1;
-    let h_team_player_2;
-    let a_team_player_1;
-    let a_team_player_2;
-
-    if (game_type === "d") {
-        h_team_player_1 = await input(`Player 1 in ${home_player}: `);
-        h_team_player_2 = await input(`Player 2 in ${home_player}: `);
-        a_team_player_1 = await input(`Player 1 in ${away_player}: `);
-        a_team_player_2 = await input(`Player 2 in ${away_player}: `);
-    } else {
-        h_team_player_1 = home_player;
-        h_team_player_2 = home_player;
-        a_team_player_1 = away_player;
-        a_team_player_2 = away_player;
-    }
-
-    let h = 0;
-    let a = 0;
-
-    while (true) {
-        const score = h + a;
-        const inddig = (score / 8) - floor(score / 8);
-
-        let player;
-        let serve;
-        let ord;
-
-        if (inddig === 0.000) {
-            player = h_team_player_1;
-            serve = "1";
-            ord = "st";
-        } else if (inddig === 0.125) {
-            player = h_team_player_1;
-            serve = "2";
-            ord = "nd";
-        } else if (inddig === 0.250) {
-            player = a_team_player_1;
-            serve = "1";
-            ord = "st";
-        } else if (inddig === 0.375) {
-            player = a_team_player_2;
-            serve = "2";
-            ord = "nd";
-        } else if (inddig === 0.500) {
-            player = h_team_player_2;
-            serve = "1";
-            ord = "st";
-        } else if (inddig === 0.625) {
-            player = h_team_player_2;
-            serve = "2";
-            ord = "nd";
-        } else if (inddig === 0.750) {
-            player = a_team_player_2;
-            serve = "1";
-            ord = "st";
-        } else if (inddig === 0.875) {
-            player = a_team_player_2;
-            serve = "2";
-            ord = "nd";
-        }
-
-        print(`${player}'s ${serve}${ord} serve`);
-
-        const p = (await input(
-            `P (${BLUE}h${RESET}/${YELLOW}a${RESET}): `
-        )).trim().toLowerCase();
-
-        if (p === "h") {
-            h += 1;
-        } else if (p === "a") {
-            a += 1;
-        } else {
-            print(`${RED}Invalid input - enter 'h' or 'a'${RESET}`);
-            continue;
-        }
-
-        print(
-            `${BLUE}${home_player}: ${h}${RESET}  ` +
-            `${YELLOW}${away_player}: ${a}${RESET}`
-        );
-
-        if ((h >= e_score || a >= e_score) && Math.abs(h - a) >= 2) {
-            const winner = h > a ? home_player : away_player;
-            const word = game_type === "S" ? "wins" : "win";
-            print(`${GREEN}${winner} ${word}${RESET}`);
-            break;
-        }
-    }
-}
-
-async function main() {
-    let target = 11;
-
-    const targetInput = await input("What score should the game go to? ");
-
-    if (targetInput.trim() !== "") {
-        const parsedTarget = Number.parseInt(targetInput, 10);
-
-        if (Number.isNaN(parsedTarget)) {
-            print(`${RED}Invalid target score, using default 11${RESET}`);
-        } else {
-            target = parsedTarget;
-        }
-    } else {
-        print(`${RED}Invalid target score, using default 11${RESET}`);
-    }
-
-    await t_tennis(target);
-}
-
-async function startMatch() {
-    if (matchStarted) return;
-
-    matchStarted = true;
-    gameFinished = false;
-    restartButton.disabled = true;
-    output.innerHTML = "";
-    status.textContent = "Match in progress";
-
-    try {
-        await main();
-        gameFinished = true;
-        status.textContent = "Match finished";
-    } catch (error) {
-        print(`${RED}Error: ${error.message}${RESET}`);
-        status.textContent = "Execution stopped";
-    } finally {
-        matchStarted = false;
-        restartButton.disabled = false;
-    }
-}
-
-restartButton.addEventListener("click", () => {
-    if (inputResolver) {
-        const resolve = inputResolver;
-        inputResolver = null;
-        resolve("");
-    }
-
-    startMatch();
+form.addEventListener("click",()=>{
+if(!cmd.disabled)cmd.focus();
 });
 
-startMatch();
+document.getElementById("screen").addEventListener("click",e=>{
+if(e.target===out||e.target.classList.contains("out")){
+if(!cmd.disabled)cmd.focus();
+}
+});
+
+window.addEventListener("pageshow",()=>{
+if(!cmd.disabled)cmd.focus();
+});
+
+init();
 </script>
 </body>
 </html>
