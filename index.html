@@ -206,9 +206,9 @@ function input(prompt = "") {
     return new Promise(resolve => {
         promptElement.innerHTML = renderAnsi(prompt);
         entry.value = "";
-        inputResolver = resolve;
         entry.disabled = false;
-        entry.focus();
+        inputResolver = resolve;
+        requestAnimationFrame(() => entry.focus());
         output.scrollTop = output.scrollHeight;
     });
 }
@@ -377,7 +377,6 @@ async function startMatch() {
     } finally {
         matchStarted = false;
         restartButton.disabled = false;
-        entry.disabled = true;
     }
 }
 
@@ -388,11 +387,9 @@ restartButton.addEventListener("click", () => {
         resolve("");
     }
 
-    entry.disabled = true;
     startMatch();
 });
 
-entry.disabled = true;
 startMatch();
 </script>
 </body>
