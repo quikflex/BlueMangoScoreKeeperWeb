@@ -18,7 +18,7 @@ body{margin:0;background:#111;color:#ddd;font:14px/1.45 monospace}
 @keyframes blink{to{visibility:hidden}}
 .hint{color:#777;font-size:12px;margin-top:10px}
 @media(max-width:500px){.terminal{margin:0}.screen{min-height:100vh}.bar{border-left:0;border-right:0}}
-</style></head><body><main class="terminal"><header class="bar"><span>BlueMangoScoreKeeper.py</span><span class="lights">● ● ●</span></header><section class="screen" id="screen"><div id="out"></div><form class="inputrow" id="form"><span class="prompt" id="prompt"></span><input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus><span class="cursor">▌</span></form><div class="hint">BlueMangoScoreKeeper // standard input</div></section></main><script>
+</style></head><body><main class="terminal"><header class="bar"><span>BlueMangoScoreKeeper.py</span><span class="lights">● ● ●</span></header><section class="screen" id="screen"><div id="out"></div><form class="inputrow" id="form"><span class="prompt" id="prompt"></span><input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus><span class="cursor">▌</span></form><div class="hint">BlueMangoScoreKeeper // coded by Wai, translated to JavaScript by Andrei</div></section></main><script>
 const $=id=>document.getElementById(id),out=$("out"),cmd=$("cmd"),form=$("form"),prompt=$("prompt");
 const C={b:"blue",y:"yellow",g:"green",r:"red",p:"purple"};
 let state="target",target=11,h=0,a=0,home_player="",away_player="",game_type="",names={},serve="",player="",ord="",finished=false;
