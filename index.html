@@ -19,11 +19,11 @@ body{background:#111;color:#ddd;font:14px/1.45 monospace}
 .green{color:#54d878}
 .red{color:#ff6262}
 .purple{color:#d68aff}
-.inputrow{display:flex;flex-flow:row nowrap;align-items:baseline;gap:0;margin-top:7px;width:100%;max-width:100%;min-width:0;overflow:hidden}
-.prompt{flex:0 1 auto;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
-.inputwrap{display:flex;flex:1 1 0;min-width:0;max-width:100%;align-items:baseline;overflow:hidden}
-.inputrow input{display:block;flex:1 1 0;width:100%;min-width:0;max-width:100%;padding:0;margin:0;background:transparent;border:0;outline:0;color:#ddd;font:inherit;line-height:inherit;caret-color:#ddd;appearance:none;-webkit-appearance:none;border-radius:0}
-.cursor{flex:none;width:1ch;overflow:hidden;animation:blink 1s steps(2,start) infinite;pointer-events:none}
+.inputrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:0;margin-top:7px;width:100%;max-width:100%;min-width:0;overflow:hidden}
+.prompt{flex:0 1 auto;min-width:0;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.inputwrap{display:inline;flex:1 1 1ch;min-width:0;max-width:100%;position:relative;overflow-wrap:anywhere;word-break:break-word}
+.inputrow textarea{display:inline;vertical-align:baseline;width:100%;min-width:0;max-width:100%;height:1.45em;min-height:1.45em;padding:0;margin:0;resize:none;overflow:hidden;vertical-align:bottom;background:transparent;border:0;outline:0;color:#ddd;font:inherit;line-height:1.45;caret-color:#ddd;appearance:none;-webkit-appearance:none;border-radius:0;overflow-wrap:anywhere;word-break:break-word}
+.cursor{display:inline;animation:blink 1s steps(2,start) infinite;pointer-events:none}
 @keyframes blink{to{visibility:hidden}}
 .hint{color:#777;font-size:12px;margin-top:10px;overflow-wrap:anywhere}
 @media(max-width:500px){.terminal{margin:0}.screen{min-height:100vh}.bar{border-left:0;border-right:0}}
@@ -38,25 +38,59 @@ body{background:#111;color:#ddd;font:14px/1.45 monospace}
 <section class="screen" id="screen">
 <div id="out"></div>
 <form class="inputrow" id="form">
-<span class="prompt" id="prompt"></span>
-<span class="inputwrap">
-<input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
-<span class="cursor">▌</span>
-</span>
+<span class="prompt" id="prompt"></span><span class="inputwrap" id="inputwrap"><textarea id="cmd" rows="1" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea><span class="cursor">▌</span></span>
 </form>
-<div class="hint">BlueMangoScoreKeeper // made by Wai, translated for the browser by Andrei</div>
+<div class="hint">BlueMangoScoreKeeper // standard input</div>
 </section>
 </main>
 <script>
-const $=id=>document.getElementById(id),out=$("out"),cmd=$("cmd"),form=$("form"),prompt=$("prompt");
+const $=id=>document.getElementById(id),out=$("out"),cmd=$("cmd"),form=$("form"),prompt=$("prompt"),inputwrap=$("inputwrap");
 const C={b:"blue",y:"yellow",g:"green",r:"red",p:"purple"};
 let state="target",target=11,h=0,a=0,home_player="",away_player="",game_type="",names={},serve="",player="",ord="",finished=false;
-function print(s="",c=""){let d=document.createElement("div");d.className="out "+(C[c]||"");d.textContent=s;out.append(d)}
-function ask(s){prompt.innerHTML=s;cmd.value="";cmd.disabled=false;cmd.focus()}
-function init(){print("What score should the game go to?");ask("")}
-function start(){print("Game to "+target,"p");ask("Home player/team: ")}
-function players(){print("Are you playing Singles or Doubles? (s/d): ","b");ask("");state="type"}
-function begin(){h=0;a=0;state="point";next()}
+
+function resizeInput(){
+cmd.style.height="1.45em";
+cmd.style.height=Math.max(cmd.scrollHeight,parseFloat(getComputedStyle(cmd).lineHeight))+"px";
+}
+
+function print(s="",c=""){
+let d=document.createElement("div");
+d.className="out "+(C[c]||"");
+d.textContent=s;
+out.append(d);
+}
+
+function ask(s){
+prompt.innerHTML=s;
+cmd.value="";
+cmd.disabled=false;
+resizeInput();
+cmd.focus();
+}
+
+function init(){
+print("What score should the game go to?");
+ask("");
+}
+
+function start(){
+print("Game to "+target,"p");
+ask("Home player/team: ");
+}
+
+function players(){
+print("Are you playing Singles or Doubles? (s/d): ","b");
+ask("");
+state="type";
+}
+
+function begin(){
+h=0;
+a=0;
+state="point";
+next();
+}
+
 function next(){
 let score=h+a,inddig=score/8-Math.floor(score/8);
 if(inddig===0){player=names.h1;serve="1";ord="st"}
@@ -67,38 +101,130 @@ else if(inddig===.500){player=names.h2;serve="1";ord="st"}
 else if(inddig===.625){player=names.h2;serve="2";ord="nd"}
 else if(inddig===.750){player=names.a2;serve="1";ord="st"}
 else if(inddig===.875){player=names.a2;serve="2";ord="nd"}
-print(player+"'s "+serve+ord+" serve");ask("P ("+'<span class="blue">h</span>/<span class="yellow">a</span>'+"): ")
+print(player+"'s "+serve+ord+" serve");
+ask("P ("+'<span class="blue">h</span>/<span class="yellow">a</span>'+"): ");
 }
+
 function score(p){
-if(p==="h")h++;else if(p==="a")a++;else{print("Invalid input - enter 'h' or 'a'","r");return next()}
-print(home_player+": "+h,"b");print(away_player+": "+a,"y");
+if(p==="h")h++;
+else if(p==="a")a++;
+else{
+print("Invalid input - enter 'h' or 'a'","r");
+return next();
+}
+print(home_player+": "+h,"b");
+print(away_player+": "+a,"y");
 if((h>=target||a>=target)&&Math.abs(h-a)>=2){
 let winner=h>a?home_player:away_player,word=game_type==="S"?"wins":"win";
-print(winner+" "+word,"g");finished=true;state="done";ask("Press Enter to restart: ");return
+print(winner+" "+word,"g");
+finished=true;
+state="done";
+ask("Press Enter to restart: ");
+return;
 }
-next()
+next();
 }
+
+cmd.addEventListener("input",resizeInput);
+
+cmd.addEventListener("keydown",e=>{
+if(e.key==="Enter"&&!e.shiftKey){
+e.preventDefault();
+form.requestSubmit();
+}
+});
+
 form.addEventListener("submit",e=>{
-e.preventDefault();if(cmd.disabled)return;
-let v=cmd.value.trim(),raw=v;print(prompt.textContent+raw);cmd.value="";
-if(state==="done"){out.innerHTML="";finished=false;state="target";h=0;a=0;target=11;init();return}
+e.preventDefault();
+if(cmd.disabled)return;
+
+let v=cmd.value.trim(),raw=v;
+print(prompt.textContent+raw);
+cmd.value="";
+resizeInput();
+
+if(state==="done"){
+out.innerHTML="";
+finished=false;
+state="target";
+h=0;
+a=0;
+target=11;
+init();
+return;
+}
+
 if(state==="target"){
-try{target=parseInt(v,10);if(Number.isNaN(target))throw 0}catch{target=11;print("Invalid target score, using default 11","r")}
+try{
+target=parseInt(v,10);
+if(Number.isNaN(target))throw 0;
+}catch{
+target=11;
+print("Invalid target score, using default 11","r");
+}
 if(!v||Number.isNaN(parseInt(v,10)))target=11;
-start();state="home";return}
-if(state==="home"){home_player=v;state="away";ask("Away player/team: ");return}
-if(state==="away"){away_player=v;state="type";ask("Are you playing Singles or Doubles? (s/d): ");return}
+start();
+state="home";
+return;
+}
+
+if(state==="home"){
+home_player=v;
+state="away";
+ask("Away player/team: ");
+return;
+}
+
+if(state==="away"){
+away_player=v;
+state="type";
+ask("Are you playing Singles or Doubles? (s/d): ");
+return;
+}
+
 if(state==="type"){
 game_type=v.toLowerCase();
-if(game_type==="d"){state="h1";ask("Player 1 in "+home_player+": ")}
-else{names={h1:home_player,h2:home_player,a1:away_player,a2:away_player};begin()}
-return}
-if(state==="h1"){names.h1=v;state="h2";ask("Player 2 in "+home_player+": ");return}
-if(state==="h2"){names.h2=v;state="a1";ask("Player 1 in "+away_player+": ");return}
-if(state==="a1"){names.a1=v;state="a2";ask("Player 2 in "+away_player+": ");return}
-if(state==="a2"){names.a2=v;begin();return}
-if(state==="point")score(v.toLowerCase())
+if(game_type==="d"){
+state="h1";
+ask("Player 1 in "+home_player+": ");
+}else{
+names={h1:home_player,h2:home_player,a1:away_player,a2:away_player};
+begin();
+}
+return;
+}
+
+if(state==="h1"){
+names.h1=v;
+state="h2";
+ask("Player 2 in "+home_player+": ");
+return;
+}
+
+if(state==="h2"){
+names.h2=v;
+state="a1";
+ask("Player 1 in "+away_player+": ");
+return;
+}
+
+if(state==="a1"){
+names.a1=v;
+state="a2";
+ask("Player 2 in "+away_player+": ");
+return;
+}
+
+if(state==="a2"){
+names.a2=v;
+begin();
+return;
+}
+
+if(state==="point")score(v.toLowerCase());
 });
+
+window.addEventListener("resize",resizeInput);
 init();
 </script>
 </body>
