@@ -1,227 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BlueMangoScoreKeeper</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlueMangoScoreKeeper</title>
+<style>
+* { box-sizing: border-box; }
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+body {
+    margin: 0;
+    padding: 20px;
+    background: #0b1020;
+    color: #e5e7eb;
+    font-family: system-ui, sans-serif;
+}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+main {
+    max-width: 900px;
+    margin: auto;
+}
 
-        body {
-            margin: 0;
-            padding: 24px;
-            min-height: 100vh;
-            background: #0b1020;
-            color: #e5e7eb;
-            font-family: system-ui, sans-serif;
-        }
+h1 { margin-bottom: 4px; }
 
-        main {
-            max-width: 950px;
-            margin: auto;
-        }
+.subtitle {
+    color: #9ca3af;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
 
-        h1 {
-            margin-bottom: 6px;
-        }
+.terminal {
+    border: 1px solid #334155;
+    border-radius: 9px;
+    overflow: hidden;
+    background: #05070d;
+}
 
-        .subtitle {
-            color: #9ca3af;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
+.terminal-header {
+    padding: 12px 16px;
+    background: #111827;
+    color: #cbd5e1;
+    font-size: 13px;
+}
 
-        .terminal-frame {
-            overflow: hidden;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            background: #05070d;
-        }
+#output {
+    height: min(65vh, 600px);
+    min-height: 320px;
+    padding: 16px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: 15px/1.55 monospace;
+}
 
-        .terminal-header {
-            padding: 12px 16px;
-            background: #111827;
-            color: #cbd5e1;
-            font-size: 13px;
-        }
+.line {
+    min-height: 1.55em;
+}
 
-        #terminal {
-            height: 520px;
-            padding: 12px;
-        }
+.blue { color: #60a5fa; }
+.yellow { color: #facc15; }
+.green { color: #4ade80; }
+.red { color: #f87171; }
+.purple { color: #c084fc; }
 
-        .status {
-            padding: 10px 14px;
-            background: #111827;
-            color: #9ca3af;
-            font-size: 12px;
-        }
+.input-line {
+    display: flex;
+    align-items: baseline;
+    font: 15px/1.55 monospace;
+    padding: 0 16px 16px;
+    gap: 6px;
+}
 
-        button {
-            margin-top: 14px;
-            padding: 10px 16px;
-            border: 0;
-            border-radius: 7px;
-            background: #2563eb;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+#prompt {
+    white-space: pre-wrap;
+}
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: wait;
-        }
+#entry {
+    min-width: 0;
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e5e7eb;
+    font: inherit;
+    caret-color: white;
+}
 
-        .notice {
-            margin-top: 14px;
-            color: #9ca3af;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-    </style>
+.controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 7px;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+.status {
+    padding: 10px 14px;
+    background: #111827;
+    color: #9ca3af;
+    font-size: 12px;
+}
+</style>
 </head>
 
 <body>
 <main>
-    <h1>BlueMangoScoreKeeper - by Wai</h1>
-    <p class="subtitle">python in the browser, woah</p>
+    <h1>BlueMangoScoreKeeper</h1>
+    <p class="subtitle">made by the GOAT waiwai, translated <br> for browser by andrei, shoutout liam</p>
 
-    <div class="terminal-frame">
-        <div class="terminal-header">
-            python session
+    <div class="terminal">
+        <div class="terminal-header">scorer.py (totally)</div>
+        <div id="output"></div>
+        <div class="input-line">
+            <span id="prompt"></span>
+            <input id="entry" autocomplete="off" autocapitalize="off"
+                   spellcheck="false" aria-label="Terminal input">
         </div>
-
-        <div id="terminal"></div>
-
-        <div class="status" id="status">
-            Loading Python runtime...
-        </div>
+        <div class="status" id="status">Ready</div>
     </div>
 
-    <button id="restart" disabled>Restart match</button>
-
-    <p class="notice">
-        coded by the GOAT waiwai. <br>
-        web interfacd made by andrei. <br>
-        shoutout liam we love you
-    </p>
+    <div class="controls">
+        <button id="restart">Restart match</button>
+    </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
-
 <script>
-const terminal = new Terminal({
-    cursorBlink: true,
-    convertEol: true,
-    fontSize: 15,
-    fontFamily: 'monospace',
-    theme: {
-        background: '#05070d',
-        foreground: '#e5e7eb',
-        cursor: '#ffffff'
+const BLUE = "\x1b[94m";
+const YELLOW = "\x1b[93m";
+const GREEN = "\x1b[92m";
+const RED = "\x1b[91m";
+const PURPLE = "\x1b[95m";
+const RESET = "\x1b[0m";
+
+const output = document.getElementById("output");
+const promptElement = document.getElementById("prompt");
+const entry = document.getElementById("entry");
+const status = document.getElementById("status");
+const restartButton = document.getElementById("restart");
+
+let inputResolver = null;
+let gameFinished = false;
+let matchStarted = false;
+
+function escapeHTML(text) {
+    return String(text).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+function renderAnsi(text) {
+    const colors = {
+        "94": "blue",
+        "93": "yellow",
+        "92": "green",
+        "91": "red",
+        "95": "purple"
+    };
+
+    const parts = String(text).split(/(\x1b\[[0-9;]*m)/);
+    let currentColor = "";
+    let html = "";
+
+    for (const part of parts) {
+        const match = part.match(/^\x1b\[([0-9;]*)m$/);
+
+        if (match) {
+            currentColor = match[1] === "0" ? "" : (colors[match[1]] || "");
+        } else {
+            const safe = escapeHTML(part);
+            html += currentColor
+                ? `<span class="${currentColor}">${safe}</span>`
+                : safe;
+        }
     }
+
+    return html;
+}
+
+function print(text = "") {
+    const line = document.createElement("div");
+    line.className = "line";
+    line.innerHTML = renderAnsi(text);
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+}
+
+function input(prompt = "") {
+    return new Promise(resolve => {
+        promptElement.innerHTML = renderAnsi(prompt);
+        entry.value = "";
+        inputResolver = resolve;
+        entry.disabled = false;
+        entry.focus();
+        output.scrollTop = output.scrollHeight;
+    });
+}
+
+entry.addEventListener("keydown", event => {
+    if (event.key !== "Enter" || !inputResolver) return;
+
+    event.preventDefault();
+
+    const answer = entry.value;
+    const promptText = promptElement.textContent;
+
+    print(promptText + answer);
+
+    const resolve = inputResolver;
+    inputResolver = null;
+
+    promptElement.textContent = "";
+    entry.value = "";
+    entry.disabled = true;
+
+    resolve(answer);
 });
 
-terminal.open(document.getElementById('terminal'));
+function floor(value) {
+    return Math.floor(value);
+}
 
-const status = document.getElementById('status');
-const restartButton = document.getElementById('restart');
+async function t_tennis(e_score) {
+    print(`${PURPLE}Game to ${e_score}${RESET}`);
 
-let pyodide;
-let running = false;
+    const home_player = await input(`${BLUE}Home player/team: ${RESET}`);
+    const away_player = await input(`${YELLOW}Away player/team: ${RESET}`);
 
-function writeToTerminal(text) {
-    terminal.write(text.replace(/\n/g, '\r\n'));
+    const game_type = (await input(
+        `${BLUE}Are you playing Singles or Doubles? (s/d): ${RESET}`
+    )).trim().toLowerCase();
+
+    let h_team_player_1;
+    let h_team_player_2;
+    let a_team_player_1;
+    let a_team_player_2;
+
+    if (game_type === "d") {
+        h_team_player_1 = await input(`Player 1 in ${home_player}: `);
+        h_team_player_2 = await input(`Player 2 in ${home_player}: `);
+        a_team_player_1 = await input(`Player 1 in ${away_player}: `);
+        a_team_player_2 = await input(`Player 2 in ${away_player}: `);
+    } else {
+        h_team_player_1 = home_player;
+        h_team_player_2 = home_player;
+        a_team_player_1 = away_player;
+        a_team_player_2 = away_player;
+    }
+
+    let h = 0;
+    let a = 0;
+
+    while (true) {
+        const score = h + a;
+        const inddig = (score / 8) - floor(score / 8);
+
+        let player;
+        let serve;
+        let ord;
+
+        if (inddig === 0.000) {
+            player = h_team_player_1;
+            serve = "1";
+            ord = "st";
+        } else if (inddig === 0.125) {
+            player = h_team_player_1;
+            serve = "2";
+            ord = "nd";
+        } else if (inddig === 0.250) {
+            player = a_team_player_1;
+            serve = "1";
+            ord = "st";
+        } else if (inddig === 0.375) {
+            player = a_team_player_2;
+            serve = "2";
+            ord = "nd";
+        } else if (inddig === 0.500) {
+            player = h_team_player_2;
+            serve = "1";
+            ord = "st";
+        } else if (inddig === 0.625) {
+            player = h_team_player_2;
+            serve = "2";
+            ord = "nd";
+        } else if (inddig === 0.750) {
+            player = a_team_player_2;
+            serve = "1";
+            ord = "st";
+        } else if (inddig === 0.875) {
+            player = a_team_player_2;
+            serve = "2";
+            ord = "nd";
+        }
+
+        print(`${player}'s ${serve}${ord} serve`);
+
+        const p = (await input(
+            `P (${BLUE}h${RESET}/${YELLOW}a${RESET}): `
+        )).trim().toLowerCase();
+
+        if (p === "h") {
+            h += 1;
+        } else if (p === "a") {
+            a += 1;
+        } else {
+            print(`${RED}Invalid input - enter 'h' or 'a'${RESET}`);
+            continue;
+        }
+
+        print(
+            `${BLUE}${home_player}: ${h}${RESET}  ` +
+            `${YELLOW}${away_player}: ${a}${RESET}`
+        );
+
+        if ((h >= e_score || a >= e_score) && Math.abs(h - a) >= 2) {
+            const winner = h > a ? home_player : away_player;
+            const word = game_type === "S" ? "wins" : "win";
+            print(`${GREEN}${winner} ${word}${RESET}`);
+            break;
+        }
+    }
+}
+
+async function main() {
+    let target = 11;
+
+    const targetInput = await input("What score should the game go to? ");
+
+    if (targetInput.trim() !== "") {
+        const parsedTarget = Number.parseInt(targetInput, 10);
+
+        if (Number.isNaN(parsedTarget)) {
+            print(`${RED}Invalid target score, using default 11${RESET}`);
+        } else {
+            target = parsedTarget;
+        }
+    } else {
+        print(`${RED}Invalid target score, using default 11${RESET}`);
+    }
+
+    await t_tennis(target);
 }
 
 async function startMatch() {
-    if (running) {
-        return;
-    }
+    if (matchStarted) return;
 
-    running = true;
+    matchStarted = true;
+    gameFinished = false;
     restartButton.disabled = true;
-    terminal.reset();
+    output.innerHTML = "";
+    status.textContent = "Match in progress";
 
     try {
-        const source = await fetch('scorer.py');
-
-        if (!source.ok) {
-            throw new Error('Could not load scorer.py');
-        }
-
-        const pythonSource = await source.text();
-
-        pyodide.setStdout({
-            batched: text => writeToTerminal(text)
-        });
-
-        pyodide.setStderr({
-            batched: text => writeToTerminal(text)
-        });
-
-        pyodide.globals.set(
-            'browser_input',
-            () => {
-                const answer = window.prompt('Enter your response:');
-                return answer === null ? '' : answer;
-            }
-        );
-
-        const adapter = `
-import sys
-import builtins
-
-_original_input = builtins.input
-
-def input(prompt=""):
-    if prompt:
-        sys.stdout.write(prompt)
-        sys.stdout.flush()
-    return browser_input()
-`;
-
-        await pyodide.runPythonAsync(adapter);
-
-        await pyodide.runPythonAsync(pythonSource);
-
-        status.textContent = 'Match finished.';
+        await main();
+        gameFinished = true;
+        status.textContent = "Match finished";
     } catch (error) {
-        writeToTerminal('\nERROR: ' + String(error) + '\n');
-        status.textContent = 'Execution stopped.';
+        print(`${RED}Error: ${error.message}${RESET}`);
+        status.textContent = "Execution stopped";
     } finally {
-        running = false;
+        matchStarted = false;
         restartButton.disabled = false;
+        entry.disabled = true;
     }
 }
 
-async function initialize() {
-    try {
-        pyodide = await loadPyodide();
-
-        status.textContent = 'Python ready. Starting scorekeeper...';
-
-        await startMatch();
-
-        status.textContent = 'Ready for another match.';
-    } catch (error) {
-        status.textContent = 'Failed to initialize Python.';
-        writeToTerminal(String(error) + '\n');
+restartButton.addEventListener("click", () => {
+    if (inputResolver) {
+        const resolve = inputResolver;
+        inputResolver = null;
+        resolve("");
     }
-}
 
-restartButton.addEventListener('click', startMatch);
+    entry.disabled = true;
+    startMatch();
+});
 
-initialize();
+entry.disabled = true;
+startMatch();
 </script>
 </body>
 </html>
